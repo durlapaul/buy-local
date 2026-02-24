@@ -6,15 +6,16 @@ services:
         container_name: buy_local_app
         restart: unless-stopped
         working_dir: /var/www
-        user: "1000:1000" 
+        user: "1000:1000"
         environment:
-            - COMPOSER_HOME=/tmp/compose
+            - COMPOSER_HOME=/tmp/composer
         volumes:
             - .:/var/www
         networks:
             - app-network
         depends_on:
             - db
+
     nginx:
         image: nginx:alpine
         container_name: buy_local_nginx
@@ -36,6 +37,7 @@ services:
         container_name: buy_local_reverb
         restart: unless-stopped
         working_dir: /var/www
+        user: "1000:1000"
         command: php artisan reverb:start
         volumes:
             - .:/var/www
@@ -53,6 +55,7 @@ services:
         container_name: buy_local_queue
         restart: unless-stopped
         working_dir: /var/www
+        user: "1000:1000"
         command: php artisan queue:work
         volumes:
             - .:/var/www
