@@ -40,8 +40,6 @@ class ProductResource extends JsonResource
                     'country' => $this->seller->country,
                 ],
             ],
-            
-            'relevance' => $this->when(isset($this->relevance), round($this->relevance, 2)),
 
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

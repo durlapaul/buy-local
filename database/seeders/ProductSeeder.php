@@ -24,5 +24,27 @@ class ProductSeeder extends Seeder
             'unit_of_measurement' => 'l',
             'user_id' => 1
         ]);
+
+        Product::create([
+            'name' => 'SecondProduct',
+            'description' => 'Second Seeded Product',
+            'unit_price' => 30.00,
+            'currency' => 'RON',
+            'status' => 'available',
+            'product_category_id' => 1,
+            'unit_of_measurement' => 'kg',
+            'user_id' => 1
+        ]);
+
+        Product::create([
+            'name' => 'Third',
+            'description' => 'Third Seeded Product',
+            'unit_price' => 30.00,
+            'currency' => 'RON',
+            'status' => 'available',
+            'product_category_id' => 2,
+            'unit_of_measurement' => 'kg',
+            'user_id' => 1
+        ]);
     }
 }

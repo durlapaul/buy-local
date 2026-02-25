@@ -13,8 +13,22 @@ class ProductCategorySeeder extends Seeder
      */
     public function run(): void
     {
-        ProductCategory::create([
-            'name' => 'Other',
-        ]);
+        ProductCategory::create(
+            [
+                'name' => 'Other',
+            ],
+        );
+        
+        ProductCategory::create(
+            [
+                'name' => 'Food',
+            ],
+        );
+        
+        ProductCategory::create(
+            [
+                'name' => 'Clothes',
+            ],
+        );
     }
 }

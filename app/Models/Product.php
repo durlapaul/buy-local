@@ -66,15 +66,14 @@ class Product extends Model
 
     public function scopeSearch(Builder $query, string $search): Builder
     {
-        return $query->selectRaw(
-            'products.*, MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE) as relevance',
-            [$search]
-        )
-        ->whereRaw(
+         if (empty($search)) {
+            return $query;
+        }
+
+        return $query->whereRaw(
             'MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
             [$search]
-        )
-        ->orderByDesc('relevance');
+        );
     }
 
     public function scopeLocation(Builder $query, string $location): Builder
