@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\ProductCategoryController;
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\SpaceController;
 use App\Http\Controllers\Api\UserController;
@@ -9,9 +11,19 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{entity}', [ProductController::class, 'show']);
+Route::get('/categories', [ProductCategoryController::class, 'index']);
+
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{entity}', [ProductController::class, 'update']);
+    Route::patch('/products/{entity}', [ProductController::class, 'update']);
+    Route::delete('/products/{entity}', [ProductController::class, 'destroy']);
 
     // User routes
     Route::prefix('user')->group(function () {

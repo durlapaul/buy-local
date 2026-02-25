@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\ProductObserver;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 #[ObservedBy([ProductObserver::class])]
 class Product extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
         'name',
@@ -62,5 +64,23 @@ class Product extends Model
         return $history?->price;
     }
 
+    public function scopeSearch(Builder $query, string $search): Builder
+    {
+        return $query->selectRaw(
+            'products.*, MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE) as relevance',
+            [$search]
+        )
+        ->whereRaw(
+            'MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
+            [$search]
+        )
+        ->orderByDesc('relevance');
+    }
 
+    public function scopeLocation(Builder $query, string $location): Builder
+    {
+        return $query->whereHas('seller', function (Builder $q) use ($location) {
+            $q->where('city', 'like', "%{$location}%");
+        });
+    }
 }

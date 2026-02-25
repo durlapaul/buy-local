@@ -23,6 +23,8 @@ return new class extends Migration
             $table->foreignId('product_category_id')->constrained();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->fullText(['name', 'description']);
         });
     }
 

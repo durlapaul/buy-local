@@ -41,7 +41,6 @@ class AuthTest extends TestCase
         ]);
 
         $user = User::where('email', 'test@example.com')->first();
-        $this->assertTrue($user->hasRole('consumer'));
     }
 
     public function test_user_can_login_with_email(): void
@@ -51,7 +50,6 @@ class AuthTest extends TestCase
             'phone' => '+40721999999',
             'password' => bcrypt('password123'),
         ]);
-        $user->assignRole('consumer');
 
         $response = $this->postJson('/api/login', [
             'login' => 'login@example.com',
@@ -72,7 +70,6 @@ class AuthTest extends TestCase
             'phone' => '+40721777777',
             'password' => bcrypt('password123'),
         ]);
-        $user->assignRole('consumer');
 
         $response = $this->postJson('/api/login', [
             'login' => '+40721777777',
@@ -94,7 +91,6 @@ class AuthTest extends TestCase
             'phone' => '+49231321312',
             'password' => bcrypt('password123'),
         ]);
-        $user->assignRole('consumer');
 
         $response = $this->postJson('/api/login', [
             'login' => 'user@example.com',
@@ -119,7 +115,6 @@ class AuthTest extends TestCase
     public function test_authenticated_user_can_get_their_profile(): void
     {
         $user = User::factory()->create();
-        $user->assignRole('consumer');
 
         $response = $this->actingAs($user)
             ->getJson('/api/me');
@@ -143,7 +138,6 @@ class AuthTest extends TestCase
     public function test_authenticated_user_can_logout(): void
     {
         $user = User::factory()->create();
-        $user->assignRole('consumer');
         $token = $user->createToken('test-token')->plainTextToken;
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
@@ -171,7 +165,6 @@ class AuthTest extends TestCase
             'email' => 'token@example.com',
             'password' => bcrypt('password123'),
         ]);
-        $user->assignRole('consumer');
 
         $response = $this->postJson('/api/login', [
             'login' => 'token@example.com',

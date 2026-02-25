@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'unauthorized' => 'Nu aveți autorizația de a efectua această acțiune.',
     'auth' => [
         'failed' => 'Aceste credențiale nu se potrivesc cu înregistrările noastre.',
         'throttle' => 'Prea multe încercări de autentificare. Vă rugăm să încercați din nou în :seconds secunde.',

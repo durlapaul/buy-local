@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'unauthorized' => 'Nincs jogosultsága a művelet végrehajtására.',
     'auth' => [
         'failed' => 'Ezek a hitelesítő adatok nem egyeznek a nyilvántartásainkkal.',
         'throttle' => 'Túl sok bejelentkezési kísérlet. Kérjük, próbálja újra :seconds másodperc múlva.',
@@ -17,17 +18,13 @@ return [
         ],
         'confirmed' => 'A(z) :attribute megerősítése nem egyezik.',
     ],
-    'spaces' => [
-        'created' => 'Létesítmény sikeresen létrehozva',
-        'updated' => 'Létesítmény sikeresen frissítve',
-        'deleted' => 'Létesítmény sikeresen törölve',
-        'not_found' => 'Létesítmény nem található',
-        'unauthorized' => 'Nincs jogosultsága ehhez a művelethez',
-    ],
     'user' => [
         'updated' => 'Profil sikeresen frissítve',
         'password_updated' => 'Jelszó sikeresen frissítve',
         'password_incorrect' => 'A jelenlegi jelszó helytelen',
         'account_deleted' => 'Fiók sikeresen törölve',
     ],
+    'products' => [
+        ''
+    ]
 ];
