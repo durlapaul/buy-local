@@ -3,8 +3,20 @@ FROM php:8.5-fpm
 WORKDIR /var/www
 
 RUN apt-get update && apt-get install -y \
-    zip unzip git curl libpq-dev libpng-dev \
-    && docker-php-ext-install pdo_mysql pcntl bcmath \
+    zip unzip git curl \
+    libpq-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo_mysql \
+        pcntl \
+        bcmath \
+        exif \
+        gd \
+        zip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \

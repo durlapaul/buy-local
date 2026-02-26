@@ -41,6 +41,11 @@ class ProductResource extends JsonResource
                 ],
             ],
 
+            'images' => $this->image_urls,
+            'primary_image' => $this->primary_image_url,
+            'primary_image_thumb' => $this->primary_image_thumb,
+            'has_images' => $this->hasImages(),
+
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

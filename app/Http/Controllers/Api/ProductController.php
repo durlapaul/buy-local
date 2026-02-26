@@ -58,7 +58,6 @@ class ProductController extends Controller
         $validated['user_id'] = $request->user()->id;
 
         $entity = Product::create($validated);
-
         $entity->load(['seller', 'category']);
 
         return (new ProductResource($entity))
@@ -118,5 +117,94 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Product deleted successfully.'
         ], 200);
+    }
+
+    public function addImage(Request $request, Product $entity)
+    {
+        Gate::authorize('update', $entity);
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // Single image
+        ]);
+
+        $currentCount = $entity->getMedia('images')->count();
+
+        if ($currentCount >= 10) {
+            return response()->json([
+                'message' => 'Maximum 10 images allowed per product'
+            ], 422);
+        }
+
+        $media = $entity->addMedia($request->file('image'))
+            ->withCustomProperties(['order' => $currentCount])
+            ->toMediaCollection('images');
+
+        return response()->json([
+            'message' => 'Image uploaded successfully',
+            'image' => [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+                'thumb' => $media->getUrl('thumb'),
+                'preview' => $media->getUrl('preview'),
+                'order' => $media->order_column,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Delete specific image
+     */
+    public function deleteImage(Product $entity, $mediaId)
+    {
+        Gate::authorize('update', $entity);
+
+        $media = $entity->getMedia('images')->where('id', $mediaId)->first();
+
+        if (!$media) {
+            return response()->json(['message' => 'Image not found'], 404);
+        }
+
+        $media->delete();
+
+        return response()->json([
+            'message' => 'Image deleted successfully',
+        ]);
+    }
+
+    public function reorderImages(Request $request, Product $entity)
+    {
+        Gate::authorize('update', $entity);
+
+        $request->validate([
+            'image_ids' => 'required|array',
+            'image_ids.*' => 'integer|exists:media,id',
+        ]);
+
+        $imageIds = $request->input('image_ids');
+        
+        $productMedia = $entity->getMedia('images');
+        $productMediaIds = $productMedia->pluck('id')->toArray();
+        
+        foreach ($imageIds as $mediaId) {
+            if (!in_array($mediaId, $productMediaIds)) {
+                return response()->json([
+                    'message' => "Image {$mediaId} does not belong to this product"
+                ], 422);
+            }
+        }
+
+        foreach ($imageIds as $newOrder => $mediaId) {
+            $mediaItem = $productMedia->firstWhere('id', $mediaId);
+            if ($mediaItem) {
+                $mediaItem->order_column = $newOrder + 1;
+                $mediaItem->save();
+            }
+        }
+
+        $entity->load('media');
+
+        return response()->json([
+            'message' => 'Images reordered successfully',
+        ]);
     }
 }

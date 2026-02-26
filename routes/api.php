@@ -25,6 +25,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/products/{entity}', [ProductController::class, 'update']);
     Route::delete('/products/{entity}', [ProductController::class, 'destroy']);
 
+    Route::post('/products/{entity}/images', [ProductController::class, 'addImage']);
+    Route::delete('/products/{entity}/images/{mediaId}', [ProductController::class, 'deleteImage']);
+    Route::post('/products/{entity}/images/reorder', [ProductController::class, 'reorderImages']);
+
     // User routes
     Route::prefix('user')->group(function () {
         Route::get('/profile', [UserController::class, 'profile']);

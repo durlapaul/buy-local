@@ -10,11 +10,14 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\ProductObserver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[ObservedBy([ProductObserver::class])]
-class Product extends Model
+class Product extends Model implements HasMedia
 {
-    use SoftDeletes, HasFactory;
+    use SoftDeletes, HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'name',
@@ -81,5 +84,63 @@ class Product extends Model
         return $query->whereHas('seller', function (Builder $q) use ($location) {
             $q->where('city', 'like', "%{$location}%");
         });
+    }
+
+    /**
+     * Register media collections
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('images')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+            ->useDisk('public');
+    }
+
+    /**
+     * Register media conversions (thumbnails, etc.)
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->sharpen(10)
+            ->nonQueued();
+
+        $this->addMediaConversion('preview')
+            ->width(800)
+            ->height(800)
+            ->sharpen(10)
+            ->nonQueued();
+    }
+
+    public function getPrimaryImageUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('images');
+    }
+
+    public function getPrimaryImageThumbAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('images', 'thumb');
+    }
+
+    public function getImageUrlsAttribute(): array
+    {
+        return $this->getMedia('images')->map(function ($media) {
+            return [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+                'thumb' => $media->getUrl('thumb'),
+                'preview' => $media->getUrl('preview'),
+                'name' => $media->file_name,
+                'size' => $media->size,
+                'order' => $media->order_column,
+            ];
+        })->toArray();
+    }
+
+    public function hasImages(): bool
+    {
+        return $this->getMedia('images')->isNotEmpty();
     }
 }

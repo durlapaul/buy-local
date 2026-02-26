@@ -14,11 +14,6 @@ class ProductObserver
      */
     public function created(Product $product): void
     {
-        Log::info('=== ProductObserver::created FIRED ===');
-        Log::info('Product ID: ' . $product->id);
-        Log::info('Unit Price: ' . $product->unit_price);
-
-
         ProductPriceHistory::create([
             'product_id' => $product->id,
             'unit_price' => $product->unit_price,
