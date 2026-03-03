@@ -17,6 +17,7 @@ class ProductTest extends TestCase
 
     protected User $user;
     protected User $otherUser;
+    protected User $adminUser;
     protected ProductCategory $category;
 
     protected function setUp(): void
@@ -38,6 +39,14 @@ class ProductTest extends TestCase
         $this->category = ProductCategory::create([
             'name' => 'Test Category',
         ]);
+
+        $this->adminUser = User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+        ]);
+
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'superadmin']);
+        $this->adminUser->assignRole('superadmin');
     }
 
     /** @test */
@@ -47,6 +56,7 @@ class ProductTest extends TestCase
         Product::factory()->count(3)->create([
             'user_id' => $this->user->id,
             'product_category_id' => $this->category->id,
+            'status' => 'available'
         ]);
 
         // Act
@@ -60,7 +70,6 @@ class ProductTest extends TestCase
                         'id',
                         'name',
                         'description',
-                        'status',
                         'unit_of_measurement',
                         'price',
                         'category',
@@ -105,11 +114,13 @@ class ProductTest extends TestCase
         Product::factory()->count(2)->create([
             'user_id' => $this->user->id,
             'product_category_id' => $this->category->id,
+            'status' => 'available'
         ]);
 
         Product::factory()->create([
             'user_id' => $this->user->id,
             'product_category_id' => $category2->id,
+            'status' => 'available'
         ]);
 
         // Act
@@ -121,30 +132,6 @@ class ProductTest extends TestCase
     }
 
     /** @test */
-    public function can_filter_products_by_status()
-    {
-        // Arrange
-        Product::factory()->create([
-            'user_id' => $this->user->id,
-            'product_category_id' => $this->category->id,
-            'status' => 'available',
-        ]);
-
-        Product::factory()->create([
-            'user_id' => $this->user->id,
-            'product_category_id' => $this->category->id,
-            'status' => 'draft',
-        ]);
-
-        // Act
-        $response = $this->getJson('/api/products?filter[status]=available');
-
-        // Assert
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data');
-    }
-
-    /** @test */
     public function can_sort_products_by_price()
     {
         // Arrange
@@ -152,12 +139,14 @@ class ProductTest extends TestCase
             'user_id' => $this->user->id,
             'product_category_id' => $this->category->id,
             'unit_price' => 50,
+            'status' => 'available'
         ]);
 
         Product::factory()->create([
             'user_id' => $this->user->id,
             'product_category_id' => $this->category->id,
             'unit_price' => 20,
+            'status' => 'available'
         ]);
 
         // Act - Sort ascending
@@ -183,7 +172,6 @@ class ProductTest extends TestCase
         $productData = [
             'name' => 'New Product',
             'description' => 'Product description',
-            'status' => 'available',
             'unit_of_measurement' => 'kg',
             'unit_price' => 15.50,
             'currency' => 'RON',
@@ -199,7 +187,7 @@ class ProductTest extends TestCase
             ->assertJson([
                 'data' => [
                     'name' => 'New Product',
-                    'status' => 'available'
+                    'status' => 'pending'
                 ],
                 'message' => __('messages.products.created'),
             ]);
@@ -216,7 +204,6 @@ class ProductTest extends TestCase
         // Arrange
         $productData = [
             'name' => 'New Product',
-            'status' => 'available',
             'unit_of_measurement' => 'kg',
             'unit_price' => 15.50,
             'currency' => 'RON',
@@ -241,7 +228,6 @@ class ProductTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'name',
-                'status',
                 'unit_of_measurement',
                 'unit_price',
                 'currency',
@@ -356,6 +342,7 @@ class ProductTest extends TestCase
         Product::factory()->count(25)->create([
             'user_id' => $this->user->id,
             'product_category_id' => $this->category->id,
+            'status' => 'available'
         ]);
 
         // Act
@@ -621,6 +608,192 @@ class ProductTest extends TestCase
         $this->assertEquals($image3->id, $orderedMedia[0]->id);
         $this->assertEquals($image1->id, $orderedMedia[1]->id);
         $this->assertEquals($image2->id, $orderedMedia[2]->id);
+    }
+
+    /** @test */
+    public function admin_can_get_pending_products()
+    {
+        // Arrange
+        Product::factory()->count(3)->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'pending',
+        ]);
+
+        // Create some non-pending products that should NOT appear
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'available',
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->adminUser)
+            ->postJson('/api/products/get-pending');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonCount(3, 'data');
+    }
+
+    /** @test */
+    public function pending_products_list_only_returns_pending_status()
+    {
+        // Arrange
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'pending',
+        ]);
+
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'available',
+        ]);
+
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'rejected',
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->adminUser)
+            ->postJson('/api/products/get-pending');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.status', 'pending');
+    }
+
+    /** @test */
+    public function guest_cannot_get_pending_products()
+    {
+        // Act
+        $response = $this->postJson('/api/products/get-pending');
+
+        // Assert
+        $response->assertStatus(401);
+    }
+
+    /** @test */
+    public function non_admin_cannot_get_pending_products()
+    {
+        // Act
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/products/get-pending');
+
+        // Assert
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function pending_products_are_sorted_oldest_first_by_default()
+    {
+        // Arrange
+        $older = Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'pending',
+            'created_at' => now()->subDays(2),
+        ]);
+
+        $newer = Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'pending',
+            'created_at' => now()->subDay(),
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->adminUser)
+            ->postJson('/api/products/get-pending');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.id', $older->id)
+            ->assertJsonPath('data.1.id', $newer->id);
+    }
+
+    /** @test */
+    public function pending_products_can_be_filtered_by_category()
+    {
+        // Arrange
+        $category2 = ProductCategory::create(['name' => 'Category 2']);
+
+        Product::factory()->count(2)->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'pending',
+        ]);
+
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $category2->id,
+            'status' => 'pending',
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->adminUser)
+            ->postJson("/api/products/get-pending?filter[category_id]={$this->category->id}");
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data');
+    }
+
+    /** @test */
+    public function pending_products_response_has_correct_structure()
+    {
+        // Arrange
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'pending',
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->adminUser)
+            ->postJson('/api/products/get-pending');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'status',
+                        'seller',
+                        'category',
+                    ]
+                ],
+                'meta',
+                'links',
+            ]);
+    }
+
+    /** @test */
+    public function pending_products_can_be_paginated()
+    {
+        // Arrange
+        Product::factory()->count(20)->create([
+            'user_id' => $this->user->id,
+            'product_category_id' => $this->category->id,
+            'status' => 'pending',
+        ]);
+
+        // Act
+        $response = $this->actingAs($this->adminUser)
+            ->postJson('/api/products/get-pending?per_page=5');
+
+        // Assert
+        $response->assertStatus(200)
+            ->assertJsonCount(5, 'data')
+            ->assertJsonPath('meta.per_page', 5)
+            ->assertJsonPath('meta.total', 20);
     }
 
 }

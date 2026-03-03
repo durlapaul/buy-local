@@ -25,6 +25,7 @@ class ProductResource extends JsonResource
                 'currency' => $this->currency,
                 'formatted' => number_format($this->unit_price, 2) . ' ' . $this->currency,
             ],
+            'rejection_reason' => $this->rejection_reason,
             
             'category' => [
                 'id' => $this->category->id,

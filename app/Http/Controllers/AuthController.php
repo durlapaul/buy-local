@@ -54,11 +54,16 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+        
+        $userData = array_merge(
+            $user->toArray(),
+            ['is_admin' => $user->isAdmin()]
+        );
 
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user,
+            'user' => $userData,
             'message' => __('messages.auth.login_success'),
         ]);
     }
@@ -74,6 +79,11 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+
+        return response()->json(array_merge(
+            $user->toArray(),
+            ['is_admin' => $user->isAdmin()]
+        ));
     }
 }

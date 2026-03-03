@@ -87,6 +87,15 @@ class ProductSeeder extends Seeder
                 'currency' => 'RON',
                 'images_count' => 3,
             ],
+            [
+                'name' => 'Goat Cheese Pending',
+                'description' => 'Artisan goat cheese, creamy and delicious.',
+                'status' => 'pending',
+                'unit_of_measurement' => 'piece (200g)',
+                'unit_price' => 300.00,
+                'currency' => 'RON',
+                'images_count' => 3,
+            ],
         ];
 
         $categories = ProductCategory::all();

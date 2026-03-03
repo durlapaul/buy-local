@@ -27,7 +27,8 @@ class Product extends Model implements HasMedia
         'product_category_id',
         'unit_of_measurement',
         'user_id',
-        'currency'
+        'currency',
+        'rejection_reason',
     ];
 
     protected $casts = [

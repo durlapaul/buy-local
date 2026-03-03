@@ -18,14 +18,13 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $entities = QueryBuilder::for(Product::class)
+        $entities = QueryBuilder::for(Product::query()->where('status', 'available'))
             ->allowedFilters([
                 AllowedFilter::scope('search'),
 
                 AllowedFilter::scope('location'),
 
                 AllowedFilter::exact('category_id', 'product_category_id'),
-                AllowedFilter::exact('status'),
             ])->allowedSorts([
                 'name',
                 'unit_price',
@@ -48,7 +47,6 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:available,unavailable,draft',
             'unit_of_measurement' => 'required|string|max:50',
             'unit_price' => 'required|numeric|min:0',
             'currency' => 'required|string|size:3',
@@ -56,6 +54,7 @@ class ProductController extends Controller
         ]);
 
         $validated['user_id'] = $request->user()->id;
+        $validated['status'] = 'pending';
 
         $entity = Product::create($validated);
         $entity->load(['seller', 'category']);
@@ -86,7 +85,6 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'sometimes|required|in:available,unavailable,draft',
             'unit_of_measurement' => 'sometimes|required|string|max:50',
             'unit_price' => 'sometimes|required|numeric|min:0',
             'currency' => 'sometimes|required|string|size:3',
@@ -96,6 +94,8 @@ class ProductController extends Controller
         if (isset($validated['unit_price']) && $validated['unit_price'] != $entity->unit_price) {
             $entity->price_change_reason = $request->input('price_change_reason', 'Price updated');
         }
+
+        $validated['status'] = 'pending';
 
         $entity->update($validated);
 
@@ -206,5 +206,83 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Images reordered successfully',
         ]);
+    }
+
+    public function updateStatus(Request $request, Product $entity)
+    {
+        Gate::authorize('moderate', $entity);
+
+
+        $validated = $request->validate([
+            'status' => 'required|in:available,rejected',
+            'rejection_reason' => 'required_if:status,rejected|nullable|string',
+        ]);
+        
+        $entity->update($validated);
+
+        return new ProductResource($entity);
+    }
+
+    public function getProductsForUser(Request $request)
+    {
+        $entities = QueryBuilder::for(
+            Product::query()->where('user_id', $request->user()->id)
+        )
+            ->allowedFilters([
+                AllowedFilter::exact('status'),
+            ])
+            ->allowedSorts(['name', 'unit_price', 'created_at', 'updated_at'])
+            ->defaultSort('-created_at')
+            ->with(['seller', 'category'])
+            ->paginate($request->input('per_page', 15))
+            ->withQueryString();
+
+        return ProductResource::collection($entities);
+    }
+
+    public function deleted(Request $request)
+    {
+        $entities = Product::onlyTrashed()
+        ->where('seller_id', $request->user()->id)
+        ->with(['seller', 'category'])
+        ->orderBy('deleted_at', 'desc')
+        ->paginate($request->input('per_page', 15));
+
+        return ProductResource::collection($entities);
+    }
+
+    public function restore(Request $request, $id)
+    {
+        $entity = Product::onlyTrashed()
+            ->where('seller_id', $request->user()->id)
+            ->findOrFail($id);
+
+        $entity->restore();
+        $entity->update(['status' => 'pending']);
+        $entity->load(['seller', 'category']);
+
+        return (new ProductResource($entity))
+            ->additional(['message' => __('messages.products.restored')]);
+    }
+
+    public function getPendingProducts(Request $request)
+    {
+        Gate::authorize('moderate', Product::class);
+
+        $entities = QueryBuilder::for(
+            Product::query()->where('status', 'pending')
+        )
+            ->allowedFilters([
+                AllowedFilter::scope('search'),
+                AllowedFilter::scope('location'),
+                AllowedFilter::exact('category_id', 'product_category_id'),
+            ])
+            ->allowedSorts(['name', 'created_at', 'updated_at'])
+            ->defaultSort('created_at')
+            ->with(['seller', 'category'])
+            ->paginate($request->input('per_page', 15))
+            ->withQueryString();
+
+        return ProductResource::collection($entities);
     }
 }

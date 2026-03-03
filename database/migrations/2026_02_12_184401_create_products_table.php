@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('unit_of_measurement');
             $table->decimal('unit_price', 10, 2);
             $table->string('currency');
+            $table->text('rejection_reason')->nullable();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('product_category_id')->constrained();
             $table->timestamps();

@@ -67,4 +67,10 @@ class ProductPolicy
     {
         return $user->isAdmin();
     }
+
+    public function moderate(User $user, ?Product $product = null): bool
+    {
+        return $user->isAdmin() && ($user->hasRole('superadmin') || $user->id != $product->user_id);
+    }
+    
 }

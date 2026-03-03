@@ -24,6 +24,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/products/{entity}', [ProductController::class, 'update']);
     Route::patch('/products/{entity}', [ProductController::class, 'update']);
     Route::delete('/products/{entity}', [ProductController::class, 'destroy']);
+    Route::get('/products/for-user', [ProductController::class, 'getProductsForUser']);
+    Route::post('/products/update-status/{entity}', [ProductController::class, 'updateStatus']);
+    Route::post('/products/get-pending', [ProductController::class, 'getPendingProducts']);
+    Route::get('/products/deleted', [ProductController::class, 'deleted']);
+    Route::post('/products/restore/{id}', [ProductController::class, 'restore']);
 
     Route::post('/products/{entity}/images', [ProductController::class, 'addImage']);
     Route::delete('/products/{entity}/images/{mediaId}', [ProductController::class, 'deleteImage']);
