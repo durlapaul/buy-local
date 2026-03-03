@@ -217,7 +217,7 @@ class ProductController extends Controller
             'status' => 'required|in:available,rejected',
             'rejection_reason' => 'required_if:status,rejected|nullable|string',
         ]);
-        
+
         $entity->update($validated);
 
         return new ProductResource($entity);
@@ -230,6 +230,7 @@ class ProductController extends Controller
         )
             ->allowedFilters([
                 AllowedFilter::exact('status'),
+                AllowedFilter::scope('search'),
             ])
             ->allowedSorts(['name', 'unit_price', 'created_at', 'updated_at'])
             ->defaultSort('-created_at')
@@ -243,7 +244,7 @@ class ProductController extends Controller
     public function deleted(Request $request)
     {
         $entities = Product::onlyTrashed()
-        ->where('seller_id', $request->user()->id)
+        ->where('user_id', $request->user()->id)
         ->with(['seller', 'category'])
         ->orderBy('deleted_at', 'desc')
         ->paginate($request->input('per_page', 15));

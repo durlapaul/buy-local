@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{entity}', [ProductController::class, 'show']);
 Route::get('/categories', [ProductCategoryController::class, 'index']);
 
 
@@ -20,14 +18,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
+    Route::get('/products/deleted', [ProductController::class, 'deleted']);
+    Route::get('/products/for-user', [ProductController::class, 'getProductsForUser']);
+    
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{entity}', [ProductController::class, 'update']);
     Route::patch('/products/{entity}', [ProductController::class, 'update']);
     Route::delete('/products/{entity}', [ProductController::class, 'destroy']);
-    Route::get('/products/for-user', [ProductController::class, 'getProductsForUser']);
     Route::post('/products/update-status/{entity}', [ProductController::class, 'updateStatus']);
     Route::post('/products/get-pending', [ProductController::class, 'getPendingProducts']);
-    Route::get('/products/deleted', [ProductController::class, 'deleted']);
     Route::post('/products/restore/{id}', [ProductController::class, 'restore']);
 
     Route::post('/products/{entity}/images', [ProductController::class, 'addImage']);
@@ -42,3 +41,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/account', [UserController::class, 'deleteAccount']);
     });
 });
+
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{entity}', [ProductController::class, 'show']);
