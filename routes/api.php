@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\SpaceController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\OrderController;
+
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -40,7 +43,29 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/password', [UserController::class, 'updatePassword']);
         Route::delete('/account', [UserController::class, 'deleteAccount']);
     });
+
+    Route::prefix('orders')->group(function () {
+        Route::get('/', [OrderController::class, 'indexForBuyer']);
+        Route::post('/', [OrderController::class, 'store']);
+        Route::get('/{entity}', [OrderController::class, 'show']);
+        Route::post('/{entity}/cancel', [OrderController::class, 'cancel']);
+    });
+
+    Route::prefix('seller/orders')->group(function () {
+        Route::get('/', [OrderController::class, 'indexForSeller']);
+        Route::get('/{entity}', [OrderController::class, 'show']);
+        Route::post('/{entity}/confirm', [OrderController::class, 'confirm']);
+        Route::post('/{entity}/ship', [OrderController::class, 'ship']);
+        Route::post('/{entity}/deliver', [OrderController::class, 'deliver']);
+    });
+
+    Route::prefix('admin/orders')->group(function () {
+        Route::get('/', [OrderController::class, 'indexForAdmin']);
+        Route::get('/{entity}', [OrderController::class, 'show']);
+    });
+
 });
 
+Route::post('/products/by-ids', [ProductController::class, 'getByIds']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{entity}', [ProductController::class, 'show']);

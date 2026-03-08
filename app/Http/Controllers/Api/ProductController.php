@@ -286,4 +286,20 @@ class ProductController extends Controller
 
         return ProductResource::collection($entities);
     }
+
+    public function getByIds(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'exists:products,id'],
+        ]);
+
+        $products = Product::whereIn('id', $request->ids)
+            ->where('status', 'available')
+            ->with(['seller', 'category'])
+            ->get()
+            ->keyBy('id');
+
+        return ProductResource::collection($products->values());
+    }
 }

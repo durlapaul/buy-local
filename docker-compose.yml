@@ -42,7 +42,12 @@ services:
         volumes:
             - .:/var/www
         depends_on:
-            - app
+            db:
+                condition: service_healthy
+            app:
+                condition: service_started
+            redis:
+                condition: service_started
         networks:
             - app-network
         ports:
@@ -60,7 +65,12 @@ services:
         volumes:
             - .:/var/www
         depends_on:
-            - app
+            db:
+                condition: service_healthy
+            app:
+                condition: service_started
+            redis:
+                condition: service_started
         networks:
             - app-network
 
@@ -79,6 +89,12 @@ services:
             - db_data:/var/lib/mysql
         networks:
             - app-network
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
 
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
@@ -94,6 +110,15 @@ services:
             - db
         volumes:
             - phpmyadmin_sessions:/sessions
+        networks:
+            - app-network
+
+    redis:
+        image: redis:alpine
+        container_name: buy_local_redis
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
         networks:
             - app-network
 

@@ -100,15 +100,14 @@ class ProductSeeder extends Seeder
 
         $categories = ProductCategory::all();
 
-        foreach ($productsData as $productData) {
+        foreach ($productsData as $index => $productData) {
             $imagesCount = $productData['images_count'];
             unset($productData['images_count']);
 
-            // Random user and category
-            $productData['user_id'] = 1;
+            // Alternate between superadmin (id=1) and seller (id=2)
+            $productData['user_id'] = $index % 2 === 0 ? 1 : 2;
             $productData['product_category_id'] = $categories->random()->id;
 
-            // Create product
             $product = Product::create($productData);
 
             for ($i = 0; $i < $imagesCount; $i++) {

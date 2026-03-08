@@ -23,6 +23,12 @@ class UserSeeder extends Seeder
         ]);
 
         $superadmin->assignRole('superadmin');
-    
+
+        User::create([
+            'name' => 'Test Seller',
+            'email' => 'seller@buy-local.com',
+            'phone' => '+40721000002',
+            'password' => Hash::make('password123'),
+        ]);    
     }
 }
