@@ -23,6 +23,8 @@ class Order extends Model
         'currency',
         'notes',
         'completed_at',
+        'cancel_reason',
+        'rejection_reason',
     ];
 
     protected $casts = [

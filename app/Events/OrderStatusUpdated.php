@@ -18,6 +18,7 @@ class OrderStatusUpdated implements ShouldBroadcast
     public function __construct(
         public readonly Order $order,
         public readonly string $status,
+        public readonly ?string $rejection_reason = null,
     ) {}
 
     /**
@@ -43,6 +44,7 @@ class OrderStatusUpdated implements ShouldBroadcast
             'order_id'     => $this->order->id,
             'order_number' => $this->order->order_number,
             'status'       => $this->status,
+            'rejection_reason' => $this->rejection_reason, 
         ];
     }
 }

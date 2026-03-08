@@ -45,6 +45,7 @@ class OrderCancelled implements ShouldBroadcast
             'order_id'     => $this->order->id,
             'order_number' => $this->order->order_number,
             'status'       => 'cancelled',
+            'cancel_reason' => $this->order->cancel_reason
         ];
     }
 

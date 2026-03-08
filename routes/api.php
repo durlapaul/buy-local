@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{entity}/confirm', [OrderController::class, 'confirm']);
         Route::post('/{entity}/ship', [OrderController::class, 'ship']);
         Route::post('/{entity}/deliver', [OrderController::class, 'deliver']);
+        Route::post('/{entity}/reject', [OrderController::class, 'reject']);
     });
 
     Route::prefix('admin/orders')->group(function () {

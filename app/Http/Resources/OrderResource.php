@@ -40,6 +40,8 @@ class OrderResource extends JsonResource
                 'formatted' => number_format((float) $this->total, 2) . ' ' . $this->currency,
             ],
             'notes'        => $this->notes,
+            'cancel_reason' => $this->cancel_reason ?? '',
+            'rejection_reason' => $this->rejection_reason ?? '',
             'completed_at' => $this->completed_at?->toISOString(),
             'created_at'   => $this->created_at->toISOString(),
             'updated_at'   => $this->updated_at->toISOString(),

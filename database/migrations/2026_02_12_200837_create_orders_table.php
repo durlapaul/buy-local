@@ -22,6 +22,8 @@ return new class extends Migration
             $table->decimal('total', 10, 2);
             $table->string('currency', 3)->default('USD');
             $table->text('notes')->nullable();
+            $table->text('cancel_reason')->nullable();
+            $table->text('rejection_reason')->nullable();
             $table->timestamp('completed_at')->nullable();
             
             $table->timestamps();

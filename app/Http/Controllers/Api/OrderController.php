@@ -196,9 +196,38 @@ class OrderController extends Controller
         return new OrderResource($entity);
     }
 
+    public function reject(Request $request, Order $entity): OrderResource
+    {
+        Gate::authorize('reject', $entity);
+
+        $request->validate([
+            'rejection_reason' => ['required', 'string', 'max:500']
+        ]);
+
+        $entity->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->rejection_reason
+        ]);
+
+        event(new OrderStatusUpdated($entity, 'rejected', $entity->rejection_reason));
+
+        $entity->load(['items.seller', 'items.product', 'buyer']);
+
+        return new OrderResource($entity);
+    }
+
     public function cancel(Request $request, Order $entity): OrderResource
     {
         Gate::authorize('cancel', $entity);
+
+        $request->validate([
+            'cancel_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $entity->update([
+            'status'        => 'cancelled',
+            'cancel_reason' => $request->cancel_reason,
+        ]);
 
         $entity->update(['status' => 'cancelled']);
 

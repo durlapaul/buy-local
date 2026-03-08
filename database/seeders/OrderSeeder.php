@@ -10,8 +10,22 @@ use Illuminate\Support\Collection;
 
 class OrderSeeder extends Seeder
 {
-    private const STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+    private const STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'rejected'];
     private const CURRENCY = 'RON';
+
+    private const CANCEL_REASONS = [
+        'Changed my mind.',
+        'Found a better price elsewhere.',
+        'Ordered by mistake.',
+        'Delivery time too long.',
+    ];
+
+    private const REJECTION_REASONS = [
+        'Out of stock.',
+        'Unable to fulfill this order.',
+        'Product no longer available.',
+        'Cannot deliver to this location.',
+    ];
 
     public function run(): void
     {
@@ -92,19 +106,25 @@ class OrderSeeder extends Seeder
             $total, $notes, $items, $daysAgo
         ) {
             $order = Order::create([
-                'user_id'      => $buyer->id,
-                'status'       => $status,
-                'currency'     => self::CURRENCY,
-                'subtotal'     => $subtotal,
-                'tax'          => $tax,
-                'shipping'     => $shipping,
-                'total'        => $total,
-                'notes'        => $notes,
-                'completed_at' => in_array($status, ['delivered', 'cancelled'])
+                'user_id'          => $buyer->id,
+                'status'           => $status,
+                'currency'         => self::CURRENCY,
+                'subtotal'         => $subtotal,
+                'tax'              => $tax,
+                'shipping'         => $shipping,
+                'total'            => $total,
+                'notes'            => $notes,
+                'cancel_reason'    => $status === 'cancelled'
+                    ? self::CANCEL_REASONS[array_rand(self::CANCEL_REASONS)]
+                    : null,
+                'rejection_reason' => $status === 'rejected'
+                    ? self::REJECTION_REASONS[array_rand(self::REJECTION_REASONS)]
+                    : null,
+                'completed_at'     => in_array($status, ['delivered', 'cancelled', 'rejected'])
                     ? now()->subDays($daysAgo)
                     : null,
-                'created_at'   => now()->subDays($daysAgo),
-                'updated_at'   => now()->subDays(rand(0, $daysAgo)),
+                'created_at'       => now()->subDays($daysAgo),
+                'updated_at'       => now()->subDays(rand(0, $daysAgo)),
             ]);
 
             foreach ($items as $item) {

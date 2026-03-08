@@ -45,6 +45,14 @@ class OrderPolicy
             && $order->status === 'pending';
     }
 
+    public function reject(User $user, Order $order): bool
+    {
+        return $order->status === 'pending'
+            && $order->items()
+                ->where('seller_id', $user->id)
+                ->exists();
+    }
+
     public function confirm(User $user, Order $order): bool
     {
         return $order->status === 'pending'
