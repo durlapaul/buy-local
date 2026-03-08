@@ -75,8 +75,8 @@ class Product extends Model implements HasMedia
         }
 
         return $query->whereRaw(
-            'MATCH(name, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
-            [$search]
+            'MATCH(name, description) AGAINST(? IN BOOLEAN MODE)',
+            [$search . '*']
         );
     }
 

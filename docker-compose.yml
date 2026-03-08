@@ -122,6 +122,16 @@ services:
         networks:
             - app-network
 
+    mailpit:
+        image: axllent/mailpit
+        container_name: buy_local_mailpit
+        restart: unless-stopped
+        ports:
+            - "1025:1025"  # SMTP
+            - "8025:8025"  # Web UI
+        networks:
+            - app-network
+
 volumes:
     db_data:
     phpmyadmin_sessions:

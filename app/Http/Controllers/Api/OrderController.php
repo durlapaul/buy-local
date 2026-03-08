@@ -30,6 +30,7 @@ class OrderController extends Controller
             )
             ->allowedFilters([
                 AllowedFilter::exact('status'),
+                AllowedFilter::partial('order_number'),
                 AllowedFilter::callback('seller_id', function ($query, $value) {
                     $query->whereHas('items', fn($q) => $q->where('seller_id', $value));
                 }),
@@ -59,6 +60,7 @@ class OrderController extends Controller
             )
             ->allowedFilters([
                 AllowedFilter::exact('status'),
+                AllowedFilter::partial('order_number'),
                 AllowedFilter::exact('buyer_id', 'user_id'),
             ])
             ->allowedSorts([
@@ -80,6 +82,7 @@ class OrderController extends Controller
             )
             ->allowedFilters([
                 AllowedFilter::exact('status'),
+                AllowedFilter::partial('order_number'),
                 AllowedFilter::exact('buyer_id', 'user_id'),
                 AllowedFilter::callback('seller_id', function ($query, $value) {
                     $query->whereHas('items', fn($q) => $q->where('seller_id', $value));

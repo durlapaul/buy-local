@@ -26,13 +26,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
             'message' => __('messages.auth.registration_success'),
+            'email' => $user->email,
         ], 201);
     }
 
@@ -52,6 +50,14 @@ class AuthController extends Controller
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => __('messages.auth.email_not_verified'),
+                'email' => $user->email,
+            ], 403);
+        }
+
 
         $token = $user->createToken('auth_token')->plainTextToken;
         
@@ -85,5 +91,41 @@ class AuthController extends Controller
             $user->toArray(),
             ['is_admin' => $user->isAdmin()]
         ));
+    }
+
+    public function verify(Request $request, $id, $hash)
+    {
+        $user = User::findOrFail($id);
+
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return response()->json(['message' => 'Invalid verification link.'], 403);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.']);
+        }
+
+        $user->markEmailAsVerified();
+
+        return redirect(config('app.url') . '/email-verified');
+    }
+
+    public function resend(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.']);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['message' => __('messages.auth.verification_sent')]);
     }
 }
