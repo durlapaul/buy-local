@@ -30,6 +30,8 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'email',
         'phone',
         'password',
+        'notify_order_updates',
+        'notify_favourites'
     ];
 
     /**
@@ -40,6 +42,8 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'notify_order_updates' => 'boolean',
+        'notify_favourites' => 'boolean',
     ];
 
     /**

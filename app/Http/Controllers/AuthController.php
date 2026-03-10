@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,8 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'required|string|max:20|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'notify_order_updates' => 'sometimes|boolean',
+            'notify_favourites' => 'sometimes|boolean'
         ]);
 
         $user = User::create([
@@ -24,6 +27,8 @@ class AuthController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'notify_order_updates' => $request->boolean('notify_order_updates', false),
+            'notify_favourites' => $request->boolean('notify_favourites', false),
         ]);
 
         $user->sendEmailVerificationNotification();
@@ -85,12 +90,7 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        $user = $request->user();
-
-        return response()->json(array_merge(
-            $user->toArray(),
-            ['is_admin' => $user->isAdmin()]
-        ));
+        return response()->json(new UserResource($request->user()));
     }
 
     public function verify(Request $request, $id, $hash)

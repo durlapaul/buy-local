@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -22,13 +23,21 @@ class UserController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => ['sometimes', 'email', Rule::unique('users')->ignore($user->id)],
             'phone' => ['sometimes', 'string', Rule::unique('users')->ignore($user->id)],
+            'notify_order_updates' => 'sometimes|boolean',
+            'notify_favourites'    => 'sometimes|boolean',
         ]);
 
-        $user->update($request->only(['name', 'email', 'phone']));
+        $user->update($request->only([
+            'name',
+            'email',
+            'phone',
+            'notify_order_updates',
+            'notify_favourites',
+        ]));
 
         return response()->json([
             'message' => __('messages.user.updated'),
-            'user' => $user,
+            'user'    => new UserResource($user),
         ]);
     }
 

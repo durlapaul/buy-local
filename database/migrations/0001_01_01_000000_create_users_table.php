@@ -25,6 +25,9 @@ return new class extends Migration
             $table->string('country')->nullable();
             $table->string('postal_code')->nullable();
 
+            $table->boolean('notify_order_updates')->default(false);
+            $table->boolean('notify_favourites')->default(false);
+
             $table->rememberToken();
             $table->timestamps();
         });
