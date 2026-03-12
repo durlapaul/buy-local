@@ -24,6 +24,8 @@ return new class extends Migration
             $table->foreignId('product_category_id')->constrained();
             $table->timestamps();
             $table->softDeletes();
+            $table->decimal('avg_rating', 3, 2)->default(0);
+            $table->unsignedInteger('review_count')->default(0);
 
             $table->fullText(['name', 'description']);
         });

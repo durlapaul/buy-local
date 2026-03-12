@@ -47,8 +47,15 @@ class ProductResource extends JsonResource
             'primary_image_thumb' => $this->primary_image_thumb,
             'has_images' => $this->hasImages(),
 
+            'avg_rating' => $this->avg_rating,
+            'review_count' => $this->review_count,
+
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+
+            'is_favourited' => auth()->check()
+                ? auth()->user()->favouriteProducts->contains('id', $this->id)
+                : null,
         ];
     }
 }

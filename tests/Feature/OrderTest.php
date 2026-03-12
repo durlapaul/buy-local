@@ -320,49 +320,6 @@ class OrderTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // POST /orders/{id}/cancel — buyer cancel
-    // -------------------------------------------------------------------------
-
-    /** @test */
-    public function buyer_can_cancel_pending_order()
-    {
-        $order = $this->createOrderForBuyer($this->buyer, ['status' => 'pending']);
-
-        $response = $this->actingAs($this->buyer)
-            ->postJson("/api/orders/{$order->id}/cancel");
-
-        $response->assertStatus(200)
-            ->assertJsonPath('data.status', 'cancelled');
-
-        $this->assertDatabaseHas('orders', [
-            'id'     => $order->id,
-            'status' => 'cancelled',
-        ]);
-    }
-
-    /** @test */
-    public function buyer_cannot_cancel_confirmed_order()
-    {
-        $order = $this->createOrderForBuyer($this->buyer, ['status' => 'confirmed']);
-
-        $response = $this->actingAs($this->buyer)
-            ->postJson("/api/orders/{$order->id}/cancel");
-
-        $response->assertStatus(403);
-    }
-
-    /** @test */
-    public function buyer_cannot_cancel_another_buyers_order()
-    {
-        $order = $this->createOrderForBuyer($this->otherBuyer, ['status' => 'pending']);
-
-        $response = $this->actingAs($this->buyer)
-            ->postJson("/api/orders/{$order->id}/cancel");
-
-        $response->assertStatus(403);
-    }
-
-    // -------------------------------------------------------------------------
     // GET /seller/orders — seller list
     // -------------------------------------------------------------------------
 

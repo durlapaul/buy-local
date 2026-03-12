@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\ProductObserver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -29,6 +30,8 @@ class Product extends Model implements HasMedia
         'user_id',
         'currency',
         'rejection_reason',
+        'avg_rating',
+        'review_count'
     ];
 
     protected $casts = [
@@ -143,5 +146,25 @@ class Product extends Model implements HasMedia
     public function hasImages(): bool
     {
         return $this->getMedia('images')->isNotEmpty();
+    }
+
+    public function favouritedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_favourite_products')->withTimestamps();
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function recalculateRating(): void
+    {
+        $result = $this->reviews()->selectRaw('AVG(rating) as avg, COUNT(*) as total')->first();
+
+        $this->update([
+            'avg_rating'   => round($result->avg ?? 0, 2),
+            'review_count' => $result->total ?? 0,
+        ]);
     }
 }

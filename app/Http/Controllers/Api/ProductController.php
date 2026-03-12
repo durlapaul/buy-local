@@ -18,6 +18,10 @@ class ProductController extends Controller
      */
     public function index()
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         $entities = QueryBuilder::for(Product::query()->where('status', 'available'))
             ->allowedFilters([
                 AllowedFilter::scope('search'),
@@ -44,6 +48,10 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -70,6 +78,10 @@ class ProductController extends Controller
      */
     public function show(Product $entity)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         $entity->load(['seller', 'category']);
 
         return new ProductResource($entity);
@@ -80,6 +92,10 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $entity)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         Gate::authorize('update', $entity);
 
         $validated = $request->validate([
@@ -210,6 +226,10 @@ class ProductController extends Controller
 
     public function updateStatus(Request $request, Product $entity)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         Gate::authorize('moderate', $entity);
 
 
@@ -225,6 +245,10 @@ class ProductController extends Controller
 
     public function getProductsForUser(Request $request)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         $entities = QueryBuilder::for(
             Product::query()->where('user_id', $request->user()->id)
         )
@@ -243,6 +267,10 @@ class ProductController extends Controller
 
     public function deleted(Request $request)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         $entities = Product::onlyTrashed()
         ->where('user_id', $request->user()->id)
         ->with(['seller', 'category'])
@@ -254,6 +282,10 @@ class ProductController extends Controller
 
     public function restore(Request $request, $id)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         $entity = Product::onlyTrashed()
             ->where('seller_id', $request->user()->id)
             ->findOrFail($id);
@@ -268,6 +300,10 @@ class ProductController extends Controller
 
     public function getPendingProducts(Request $request)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         Gate::authorize('moderate', Product::class);
 
         $entities = QueryBuilder::for(
@@ -289,6 +325,10 @@ class ProductController extends Controller
 
     public function getByIds(Request $request)
     {
+        if (auth()->check()) {
+            auth()->user()->load('favouriteProducts');
+        }
+
         $request->validate([
             'ids' => ['required', 'array', 'min:1', 'max:100'],
             'ids.*' => ['required', 'integer', 'exists:products,id'],

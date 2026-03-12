@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\FavouriteController;
 use App\Http\Controllers\Api\ProductCategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\AuthController;
@@ -8,8 +9,8 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\OrderController;
-
-
+use App\Http\Controllers\Api\ProductReviewController;
+use App\Http\Middleware\OptionalSanctumAuth;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -38,6 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/products/get-pending', [ProductController::class, 'getPendingProducts']);
     Route::post('/products/restore/{id}', [ProductController::class, 'restore']);
 
+    Route::get('/favourites', [FavouriteController::class, 'index']);
+    Route::post('/products/{product}/favourite', [FavouriteController::class, 'toggle']);
+
     Route::post('/products/{entity}/images', [ProductController::class, 'addImage']);
     Route::delete('/products/{entity}/images/{mediaId}', [ProductController::class, 'deleteImage']);
     Route::post('/products/{entity}/images/reorder', [ProductController::class, 'reorderImages']);
@@ -55,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [OrderController::class, 'store']);
         Route::get('/{entity}', [OrderController::class, 'show']);
         Route::post('/{entity}/cancel', [OrderController::class, 'cancel']);
+        Route::post('/{order}/reviews', [ProductReviewController::class, 'store']);
     });
 
     Route::prefix('seller/orders')->group(function () {
@@ -73,6 +78,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::post('/products/by-ids', [ProductController::class, 'getByIds']);
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{entity}', [ProductController::class, 'show']);
+Route::middleware(OptionalSanctumAuth::class)->group(function () {
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{entity}', [ProductController::class, 'show']);
+    Route::post('/products/by-ids', [ProductController::class, 'getByIds']);
+});

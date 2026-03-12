@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Events\FavouriteProductUpdated;
 use App\Models\Product;
 use App\Models\ProductPriceHistory;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,7 @@ class ProductObserver
     }
 
     /**
-     * Handle the Product "updated" event.
+     * Handle the Product "updating" event.
      */
     public function updating(Product $product): void
     {
@@ -54,6 +55,30 @@ class ProductObserver
 
             unset($product->price_change_reason);
         }
+    }
+
+    public function updated(Product $product): void
+    {
+        if ($product->status !== 'available') {
+            return;
+        }
+
+        $changes = collect($product->getChanges())
+            ->except(['updated_at'])
+            ->map(fn($value, $key) => match($key) {
+                'unit_price' => "Price updated to {$product->unit_price} {$product->currency}",
+                'name'       => "Name changed to {$value}",
+                'status'     => "Product is now {$value}",
+                default      => null,
+            })
+            ->filter()
+            ->join(', ');
+
+        if (!$changes) {
+            return;
+        }
+
+        FavouriteProductUpdated::dispatch($product, $changes);
     }
 
     /**
